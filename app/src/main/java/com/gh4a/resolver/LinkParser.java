@@ -53,7 +53,7 @@ public class LinkParser {
         List<String> parts = new ArrayList<>(uri.getPathSegments());
 
         if ("gist.github.com".equals(uri.getHost())) {
-            return parseGistLink(activity, parts);
+            return parseGistLink(activity, parts, uri.getFragment());
         }
         if ("blog.github.com".equals(uri.getHost())) {
             return parseNewBlogLink(activity, parts);
@@ -117,12 +117,15 @@ public class LinkParser {
     }
 
     @Nullable
-    private static ParseResult parseGistLink(FragmentActivity activity, List<String> parts) {
-        if (!parts.isEmpty()) {
-            String gistId = parts.get(parts.size() - 1);
-            return new ParseResult(GistActivity.makeIntent(activity, gistId));
+    private static ParseResult parseGistLink(FragmentActivity activity, List<String> parts, String fragment) {
+        if (parts.isEmpty()) {
+            return null;
         }
-        return null;
+        String gistId = parts.get(parts.size() - 1);
+        if (fragment != null && fragment.startsWith("file-")) {
+            return new ParseResult(new GistFileLoadTask(activity, gistId, fragment.substring(5)));
+        }
+        return new ParseResult(GistActivity.makeIntent(activity, gistId));
     }
 
     @Nullable
